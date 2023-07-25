@@ -1,0 +1,82 @@
+[tool.poetry]
+name = "fast-base"
+version = "0.1.0"
+description = "A starter template for fastapi"
+authors = ["Elie Hamouche <elie.hamouche@gmail.com>"]
+readme = "README.md"
+packages = [{ include = "fast_base" }]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = { version = "^0.100.0", extras = ["all"] }
+pydantic-settings = "^2.0.2"
+asgi-correlation-id = "^4.2.0"
+structlog = "^23.1.0"
+python-ulid = "^1.1.0"
+tenacity = "^8.2.2"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.0.280"
+black = "^23.7.0"
+pyright = "^1.1.318"
+
+
+[tool.poetry.group.test.dependencies]
+pytest = "^7.4.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+
+[tool.ruff]
+# Enable pycodestyle (`E`) and Pyflakes (`F`) codes by default.
+select = ["E", "F"]
+ignore = []
+
+# Allow autofix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+]
+per-file-ignores = {}
+
+# Same as Black.
+line-length = 120
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+target-version = "py311"
+
+[tool.ruff.mccabe]
+# Unlike Flake8, default to a complexity level of 10.
+max-complexity = 10
+
+[tool.black]
+line-length = 120
+
+[tool.pyright]
+# Enable all rules by default.

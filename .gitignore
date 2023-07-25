@@ -1,0 +1,31 @@
+# Ignore editor directories
+.idea/
+.vscode/
+
+# Ignore the virtual environment
+venv/
+env/
+.venv
+
+# Ignore Python compile and log files
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+
+# Ignore temporary files created by the operating system
+*.log
+*.swp
+*.swo
+.DS_Store
+
+# Ignore the SQLite database file if it's being used
+*.db
+
+# Ignore all .env files
+*.env
+
+# Ruff
+.ruff_cache
+
+# 
