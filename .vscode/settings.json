@@ -1,0 +1,15 @@
+{
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.codeActionsOnSave": {
+      "source.fixAll": true,
+      "source.organizeImports": true,
+      
+    },
+  },
+  "python.analysis.autoImportCompletions": true,
+  "python.analysis.indexing": true,
+  "files.exclude": {
+    ".venv": true,
+  },
+}
