@@ -1,13 +1,16 @@
 import time
+from databases import Database
 
 import structlog
 from asgi_correlation_id import CorrelationIdMiddleware, correlation_id
-from fastapi import FastAPI, Request, Response
+from fastapi import Depends, FastAPI, Request, Response
 from uvicorn.protocols.utils import get_path_with_query_string
 
 from app.api.v1.router import router_v1
 from app.core.config import config
+from app.core.deps.db import get_db
 from app.core.logging import setup_logging
+from app.db import db
 
 setup_logging(json_logs=config.JSON_LOGGING, log_level=config.LOG_LEVEL)
 access_logger = structlog.stdlib.get_logger("api.access")
@@ -17,6 +20,9 @@ app = FastAPI(title=config.PROJECT_NAME, openapi_url=f"{config.API_V1_STR}/opena
 
 @app.middleware("http")
 async def logging_middleware(request: Request, call_next) -> Response:
+    if request.url.path == "/health":
+        return await call_next(request)
+
     url = get_path_with_query_string(request.scope)  # type: ignore
     client_host = request.client.host  # type: ignore
     client_port = request.client.port  # type: ignore
@@ -92,8 +98,25 @@ app.add_middleware(CorrelationIdMiddleware)
 app.include_router(router_v1, prefix=config.API_V1_STR)
 
 
+@app.on_event("startup")
+async def startup():
+    await db.connect()
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    await db.disconnect()
+
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
+
 @app.get("/")
-def hello(request: Request):
+async def hello(request: Request, db: Database = Depends(get_db)):
+    res = await db.execute("SELECT 1")
+    print(res)
     hello_logger = structlog.stdlib.get_logger("hello.logger")
     hello_logger.info("This is an info message from Structlog")
     hello_logger.warning("This is a warning message from Structlog, with attributes", an_extra="attribute")
