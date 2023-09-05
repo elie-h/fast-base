@@ -1,19 +1,20 @@
 [tool.poetry]
 name = "fast-base"
-version = "0.1.0"
+version = "0.1.1"
 description = "A starter template for fastapi"
 authors = ["Elie Hamouche <elie.hamouche@gmail.com>"]
 readme = "README.md"
-packages = [{ include = "fast_base" }]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-fastapi = { version = "^0.100.0", extras = ["all"] }
+fastapi = "0.103.1"
 pydantic-settings = "^2.0.2"
 asgi-correlation-id = "^4.2.0"
 structlog = "^23.1.0"
 python-ulid = "^1.1.0"
 tenacity = "^8.2.2"
+uvicorn = "^0.23.2"
+httpx = "^0.24.1"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.0.280"
