@@ -10,3 +10,9 @@ poetry shell
 poetry install
 make dev
 ```
+
+# Generating migrations
+
+```bash
+alembic revision -m "create account table"
+```

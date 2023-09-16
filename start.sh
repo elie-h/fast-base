@@ -4,4 +4,4 @@
 poetry run python app/pre_start.py
 
 # Start Uvicorn server
-poetry run uvicorn app.main:app --host 0.0.0.0 --port 7999 --reload --log-config app/uvicorn_disable_logging.json
+poetry run uvicorn app.api:app --host 0.0.0.0 --port 7999 --reload --log-config app/uvicorn_disable_logging.json

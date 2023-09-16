@@ -1,16 +1,16 @@
 import time
-from databases import Database
 
 import structlog
 from asgi_correlation_id import CorrelationIdMiddleware, correlation_id
+from databases import Database
 from fastapi import Depends, FastAPI, Request, Response
 from uvicorn.protocols.utils import get_path_with_query_string
 
-from app.api.v1.router import router_v1
 from app.core.config import config
 from app.core.deps.db import get_db
 from app.core.logging import setup_logging
 from app.db import db
+from app.routes.v1.router import router_v1
 
 setup_logging(json_logs=config.JSON_LOGGING, log_level=config.LOG_LEVEL)
 access_logger = structlog.stdlib.get_logger("api.access")
@@ -23,7 +23,7 @@ async def logging_middleware(request: Request, call_next) -> Response:
     if request.url.path == "/health":
         return await call_next(request)
 
-    url = get_path_with_query_string(request.scope)  # type: ignore
+    get_path_with_query_string(request.scope)  # type: ignore
     client_host = request.client.host  # type: ignore
     client_port = request.client.port  # type: ignore
     http_method = request.method
@@ -47,15 +47,16 @@ async def logging_middleware(request: Request, call_next) -> Response:
         status_code = response.status_code
         # Recreate the Uvicorn access log format, but add all parameters as structured information
         access_logger.info(
-            f"""{client_host}:{client_port} - "{http_method} {url} HTTP/{http_version}" {status_code}""",
+            "Access",
             http={
                 "url": str(request.url),
                 "status_code": status_code,
                 "method": http_method,
                 "request_id": request_id,
-                "version": http_version,
+                "http_version": http_version,
             },
             network={"client": {"ip": client_host, "port": client_port}},
+            app={"version": config.VERSION},
             duration_ms=process_time,
         )
         response.headers["X-Process-Time-Ms"] = str(process_time)
@@ -74,7 +75,7 @@ if config.BACKEND_CORS_ORIGINS:
     )
 
 if config.INJECT_SECURITY_HEADERS:
-    from app.api.middleware.security import SecurityHeadersMiddleware
+    from app.routes.middleware.security import SecurityHeadersMiddleware
 
     app.add_middleware(SecurityHeadersMiddleware, csp_enabled=config.INJECT_CSP_HEADERS)
 
