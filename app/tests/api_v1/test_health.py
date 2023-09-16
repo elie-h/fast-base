@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from app.api.v1.endpoints.health import router
+from app.routes.v1.endpoints.health import router
 
 app = FastAPI()
 
