@@ -2,7 +2,7 @@
 name = "fast-base"
 version = "0.1.1"
 description = "A starter template for fastapi"
-authors = ["Elie Hamouche <elie.hamouche@gmail.com>"]
+authors = ["Elie Hamouche"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
@@ -15,7 +15,7 @@ python-ulid = "^1.1.0"
 tenacity = "^8.2.2"
 uvicorn = "^0.23.2"
 httpx = "^0.24.1"
-databases = {version = "^0.8.0", extras = ["asyncpg"]}
+databases = { version = "^0.8.0", extras = ["asyncpg"] }
 psycopg2-binary = "^2.9.7"
 alembic = "^1.12.0"
 better-exceptions = "^0.3.3"
