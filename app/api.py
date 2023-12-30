@@ -10,6 +10,7 @@ from uvicorn.protocols.utils import get_path_with_query_string
 from app.core.config import config
 from app.core.deps.db import DBSession
 from app.core.logging import setup_logging
+from app.db.connection import sessionmanager
 from app.db.models import Song, SongCreate
 from app.routes.v1.router import router_v1
 
@@ -19,12 +20,12 @@ access_logger = structlog.stdlib.get_logger("api.access")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("Setup")
-    yield
-    print("Teardown")
+    async with sessionmanager.connect():
+        yield
+    await sessionmanager.disconnect()
 
 
-app = FastAPI(title=config.PROJECT_NAME, openapi_url=f"{config.API_V1_STR}/openapi.json")
+app = FastAPI(title=config.PROJECT_NAME, openapi_url=f"{config.API_V1_STR}/openapi.json", lifespan=lifespan)
 
 
 @app.middleware("http")

@@ -1,6 +1,7 @@
 import contextlib
 from typing import Any, AsyncIterator
 
+import structlog
 from sqlalchemy.ext.asyncio import (
     AsyncConnection,
     AsyncSession,
@@ -13,6 +14,8 @@ from app.core.config import config
 
 Base = declarative_base()
 
+db_logger = structlog.stdlib.get_logger("db")
+
 
 # Heavily inspired by https://praciano.com.br/fastapi-and-async-sqlalchemy-20-with-pytest-done-right.html
 class DatabaseSessionManager:
@@ -20,10 +23,12 @@ class DatabaseSessionManager:
         self._engine = create_async_engine(host, **engine_kwargs)
         self._sessionmaker = async_sessionmaker(autocommit=False, bind=self._engine)
 
-    async def close(self):
+    async def disconnect(self):
         if self._engine is None:
             raise Exception("DatabaseSessionManager is not initialized")
+        db_logger.info("Closing database connection")
         await self._engine.dispose()
+        db_logger.info("Database connection closed")
 
         self._engine = None
         self._sessionmaker = None
@@ -35,6 +40,7 @@ class DatabaseSessionManager:
 
         async with self._engine.begin() as connection:
             try:
+                db_logger.info("Database connection opened")
                 yield connection
             except Exception:
                 await connection.rollback()
@@ -55,7 +61,7 @@ class DatabaseSessionManager:
             await session.close()
 
 
-sessionmanager = DatabaseSessionManager(config.DATABASE_URL, {"echo": True})
+sessionmanager = DatabaseSessionManager(config.DATABASE_URL, {"echo": False})
 
 
 async def get_session():
