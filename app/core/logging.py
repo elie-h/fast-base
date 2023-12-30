@@ -6,18 +6,6 @@ import structlog
 from structlog.types import EventDict, Processor
 
 
-# https://github.com/hynek/structlog/issues/35#issuecomment-591321744
-def rename_event_key(_, __, event_dict: EventDict) -> EventDict:
-    """
-    Log entries keep the text message in the `event` field, but Datadog
-    uses the `message` field. This processor moves the value from one field to
-    the other.
-    See https://github.com/hynek/structlog/issues/35#issuecomment-591321744
-    """
-    event_dict["message"] = event_dict.pop("event")
-    return event_dict
-
-
 def drop_color_message_key(_, __, event_dict: EventDict) -> EventDict:
     """
     Uvicorn logs the message a second time in the extra `color_message`, but we don't
@@ -42,9 +30,6 @@ def setup_logging(json_logs: bool = False, log_level: str = "INFO"):
     ]
 
     if json_logs:
-        # We rename the `event` key to `message` only in JSON logs, as Datadog looks for the
-        # `message` key but the pretty ConsoleRenderer looks for `event`
-        shared_processors.append(rename_event_key)
         # Format the exception only for JSON logs, as we want to pretty-print them when
         # using the ConsoleRenderer
         shared_processors.append(structlog.processors.format_exc_info)
