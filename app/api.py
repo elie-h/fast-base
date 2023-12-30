@@ -1,19 +1,28 @@
 import time
+from contextlib import asynccontextmanager
 
 import structlog
 from asgi_correlation_id import CorrelationIdMiddleware, correlation_id
-from databases import Database
-from fastapi import Depends, FastAPI, Request, Response
+from fastapi import FastAPI, Request, Response
+from sqlmodel import select
 from uvicorn.protocols.utils import get_path_with_query_string
 
 from app.core.config import config
-from app.core.deps.db import get_db
+from app.core.deps.db import DBSession
 from app.core.logging import setup_logging
-from app.db import db
+from app.db.models import Song, SongCreate
 from app.routes.v1.router import router_v1
 
 setup_logging(json_logs=config.JSON_LOGGING, log_level=config.LOG_LEVEL)
 access_logger = structlog.stdlib.get_logger("api.access")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("Setup")
+    yield
+    print("Teardown")
+
 
 app = FastAPI(title=config.PROJECT_NAME, openapi_url=f"{config.API_V1_STR}/openapi.json")
 
@@ -99,25 +108,28 @@ app.add_middleware(CorrelationIdMiddleware)
 app.include_router(router_v1, prefix=config.API_V1_STR)
 
 
-@app.on_event("startup")
-async def startup():
-    await db.connect()
-
-
-@app.on_event("shutdown")
-async def shutdown():
-    await db.disconnect()
-
-
 @app.get("/health")
 async def health():
     return {"status": "ok"}
 
 
+@app.get("/songs", response_model=list[Song])
+async def get_songs(db: DBSession):
+    songs = (await db.scalars(select(Song))).all()
+    return [Song(name=song.name, artist=song.artist, id=song.id) for song in songs]
+
+
+@app.post("/songs")
+async def add_song(db: DBSession, newSong: SongCreate):
+    song = Song(**newSong.model_dump())
+    db.add(song)
+    await db.commit()
+    await db.refresh(song)
+    return song
+
+
 @app.get("/")
-async def hello(request: Request, db: Database = Depends(get_db)):
-    res = await db.execute("SELECT 1")
-    print(res)
+async def hello(request: Request):
     hello_logger = structlog.stdlib.get_logger("hello.logger")
     hello_logger.info("This is an info message from Structlog")
     hello_logger.warning("This is a warning message from Structlog, with attributes", an_extra="attribute")

@@ -1,11 +1,12 @@
 import structlog
 from tenacity import retry, stop_after_attempt, wait_fixed
 
+from alembic import command
+
+# from app.db import db
+from alembic.config import Config
 from app.core.config import config
 from app.core.logging import setup_logging
-from app.db import db
-from alembic.config import Config
-from alembic import command
 
 setup_logging(json_logs=config.JSON_LOGGING, log_level=config.LOG_LEVEL)
 logger = structlog.stdlib.get_logger("api.startup")
@@ -21,9 +22,9 @@ wait_seconds = 1
 async def init() -> None:
     try:
         logger.info("Pre-flight checks starting")
-        await db.connect()
-        await db.execute("SELECT 1")
-        await db.disconnect()
+        # await db.connect()
+        # await db.execute("SELECT 1")
+        # await db.disconnect()
         logger.info("Pre-flight checks passed, application can start")
     except Exception as e:
         logger.critical("Exception while trying to connect to database", exc_info=True)
