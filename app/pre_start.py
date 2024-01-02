@@ -19,7 +19,7 @@ wait_seconds = 1
     stop=stop_after_attempt(max_tries),
     wait=wait_fixed(wait_seconds),
 )
-async def init() -> None:
+def init() -> None:
     try:
         logger.info("Pre-flight checks starting")
         # await db.connect()
@@ -40,7 +40,7 @@ def run_migrations() -> None:
 
 async def main() -> None:
     logger.info("Initializing service")
-    await init()
+    init()
     logger.info("Service finished initializing")
 
 

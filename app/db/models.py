@@ -6,7 +6,7 @@ class SongBase(SQLModel):
     artist: str
 
 
-class Song(SongBase, table=True):
+class Song(SongBase, table=True):  # type: ignore
     id: int = Field(default=None, nullable=False, primary_key=True)
 
 

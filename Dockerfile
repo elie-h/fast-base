@@ -1,22 +1,28 @@
-# Use an official Python runtime as a parent image
-FROM python:3.11-slim-buster
+FROM python:3.12-bullseye as builder
 
-# Set the working directory in the container
-WORKDIR /usr/src/app
+RUN pip install poetry==1.5.1
 
+ENV POETRY_NO_INTERACTION=1 \
+    POETRY_VIRTUALENVS_IN_PROJECT=1 \
+    POETRY_VIRTUALENVS_CREATE=1 \
+    POETRY_CACHE_DIR=/tmp/poetry_cache
 
-# Install poetry
-RUN pip install --no-cache-dir poetry
+WORKDIR /app
 
-# Copy only requirements to cache them in docker layer
-COPY pyproject.toml poetry.lock /usr/src/app/
+COPY pyproject.toml poetry.lock ./
+RUN touch README.md
 
-# Project initialization
-RUN poetry config virtualenvs.create true && \
-    poetry install --only main
+RUN --mount=type=cache,target=$POETRY_CACHE_DIR poetry install --without dev --no-root
 
-# Copy all files
-COPY . /usr/src/app
+FROM python:3.12-slim-bullseye as runtime
 
-ENV PYTHONPATH='.'
-ENV PYTHONUNBUFFERED=1
+ENV VIRTUAL_ENV=/app/.venv \
+    PATH="/app/.venv/bin:$PATH"
+
+COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
+COPY --from=builder /usr/local/bin/poetry /usr/local/bin/poetry
+
+COPY app ./app
+COPY alembic ./alembic
+COPY alembic.ini ./
+COPY start.sh ./

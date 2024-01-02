@@ -12,20 +12,38 @@ services:
       - PYTHONPATH=.
       - PYTHONUNBUFFERED=1
       - BETTER_EXCEPTIONS=1
-      - DATABASE_URL=postgresql://postgres:postgres@db/postgres
+      - JSON_LOGGING=0
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db/postgres
     depends_on:
       - db
+      - cache
     command: ["./start.sh"]
 
   db:
-    image: postgres:13
+    image: postgres:16.1-alpine
     ports:
-      - "5432:5432"
-    # volumes:
-    #   - postgres_data:/var/lib/postgresql/data
+      - 5432:5432
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
-# volumes:
-#   postgres_data:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 1s
+      timeout: 1s
+      retries: 120
+  # volumes:
+  #   postgres_data:
+  cache:
+    image: redis:7.2-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    environment:
+      - REDIS_PASSWORD=redis
+    command: redis-server --loglevel warning
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping"]
+      interval: 1s
+      timeout: 1s
+      retries: 120
